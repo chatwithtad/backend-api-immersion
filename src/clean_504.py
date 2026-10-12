@@ -64,6 +64,13 @@ def clean_504_data():
         .astype("string")
     )
 
+    # Standardize industry descriptions so hidden whitespace
+    # does not split identical industries into separate groups
+    working_df["NaicsDescription"] = (
+        working_df["NaicsDescription"]
+        .str.strip()
+    )
+
     return working_df
 
 
