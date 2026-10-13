@@ -1,7 +1,12 @@
 import pandas as pd
 
-from analyze_504 import analyze_counties, analyze_industries
+# from analyze_504 import analyze_counties, analyze_industries
 
+from analyze_504 import (
+    analyze_counties,
+    analyze_industries,
+    analyze_years,
+)
 
 def test_analyze_counties():
     test_data = pd.DataFrame({
@@ -39,3 +44,24 @@ def test_analyze_industries_groups_by_naics_code():
     assert childcare["TotalApproval"] == 3_000_000
     assert childcare["JobsSupported"] == 30
     assert childcare["JobsPerMillion"] == 10.0
+
+    def test_analyze_years():
+        test_data = pd.DataFrame({
+            "ApprovalFY": [2024, 2024, 2025],
+            "GrossApproval": [1_000_000, 3_000_000, 5_000_000],
+            "JobsSupported": [10, 20, 40]
+        })
+
+        result = analyze_years(test_data)
+
+        year_2024 = result[result["ApprovalFY"] == 2024].iloc[0]
+        year_2025 = result[result["ApprovalFY"] == 2025].iloc[0]
+
+        assert year_2024["LoanCount"] == 2
+        assert year_2024["TotalApproval"] == 4_000_000
+        assert year_2024["JobsSupported"] == 30
+        assert year_2024["AverageLoanSize"] == 2_000_000
+
+        assert year_2025["LoanCountYoYPercent"] == -50.0
+        assert year_2025["ApprovalYoYPercent"] == 25.0
+
