@@ -70,30 +70,73 @@ def analyze_industries(georgia_df):
 
     return industry_summary
 
+def analyze_years(georgia_df):
+    yearly_summary = (
+        georgia_df
+        .groupby("ApprovalFY")
+        .agg(
+            LoanCount=("ApprovalFY", "size"),
+            TotalApproval=("GrossApproval", "sum"),
+            JobsSupported=("JobsSupported", "sum"),
+            AverageLoanSize=("GrossApproval", "mean")
+        )
+        .reset_index()
+        .sort_values("ApprovalFY")
+    )
+
+    yearly_summary["TotalApprovalMillions"] = (
+            yearly_summary["TotalApproval"] / 1_000_000
+    ).round(2)
+
+    yearly_summary["AverageLoanSize"] = (
+        yearly_summary["AverageLoanSize"]
+        .round(0)
+    )
+
+    # Express total approvals in millions for easier reading
+    yearly_summary["TotalApprovalMillions"] = (
+            yearly_summary["TotalApproval"] / 1_000_000
+    ).round(2)
+
+    # Round average loan size to the nearest dollar
+    yearly_summary["AverageLoanSize"] = (
+        yearly_summary["AverageLoanSize"]
+        .round(0)
+    )
+
+    # Calculate year-over-year percentage change
+    yearly_summary["LoanCountYoYPercent"] = (
+        yearly_summary["LoanCount"]
+        .pct_change()
+        .mul(100)
+        .round(2)
+    )
+
+    yearly_summary["ApprovalYoYPercent"] = (
+        yearly_summary["TotalApproval"]
+        .pct_change()
+        .mul(100)
+        .round(2)
+    )
+
+    return yearly_summary
+
+
 if __name__ == "__main__":
     georgia_df = get_georgia_data()
 
-    for code in ["721110", "722511"]:
-        print(f"\nDescriptions for NAICS {code}:")
+    # county_summary = analyze_counties(georgia_df)
+    # industry_summary = analyze_industries(georgia_df)
 
-        descriptions = (
-            georgia_df.loc[
-                georgia_df["NaicsCode"] == code,
-                "NaicsDescription"
-            ]
-            .value_counts()
-        )
+    # print("\nTop 10 Georgia counties by SBA 504 approval:")
+    # print(county_summary.head(10).to_string(index=False))
 
-        for description, count in descriptions.items():
-            print(repr(description), count)
+    # print("\nTop 10 Georgia industries by SBA 504 approval:")
+    # print(industry_summary.head(10).to_string(index=False))
 
-    # print(georgia_df.shape)
-    # print(georgia_df["ProjectState"].value_counts())
-    county_summary = analyze_counties(georgia_df)
-    industry_summary = analyze_industries(georgia_df)
+    #
 
-    print("\nTop 10 Georgia counties by SBA 504 approval:")
-    print(county_summary.head(10).to_string(index=False))
+    yearly_summary = analyze_years(georgia_df)
 
-    print("\nTop 10 Georgia industries by SBA 504 approval:")
-    print(industry_summary.head(10).to_string(index=False))
+    print("\nGeorgia SBA 504 activity by fiscal year:")
+    print(yearly_summary.to_string(index=False))
