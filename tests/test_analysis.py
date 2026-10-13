@@ -45,7 +45,7 @@ def test_analyze_industries_groups_by_naics_code():
     assert childcare["JobsSupported"] == 30
     assert childcare["JobsPerMillion"] == 10.0
 
-    def test_analyze_years():
+def test_analyze_years():
         test_data = pd.DataFrame({
             "ApprovalFY": [2024, 2024, 2025],
             "GrossApproval": [1_000_000, 3_000_000, 5_000_000],
